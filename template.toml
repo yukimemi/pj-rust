@@ -1,0 +1,21 @@
+name = "pj-rust"
+version = "0.1.0"
+
+# Rust language layer. Brings the cargo-make task surface, the
+# stable rust-toolchain pin, and the cross-platform CI matrix every
+# yukimemi/* Rust project shares. Compose under `pj-base`.
+
+[[file]]
+src = "Makefile.toml"
+how = "overwrite"
+when = "always"
+
+[[file]]
+src = "rust-toolchain.toml"
+how = "overwrite"
+when = "always"
+
+[[file]]
+src = ".github/workflows/ci.yml"
+how = "overwrite"
+when = "always"

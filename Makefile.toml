@@ -52,6 +52,8 @@ writefile ${hook_file} ${hook_content}
 chmod_path = which chmod
 if not is_empty ${chmod_path}
     exec chmod +x ${hook_file}
+else
+    echo "chmod not on PATH; skipping exec-bit (no-op on Windows; on Unix this means the hook may not be executable)"
 end
 echo "Installed pre-push hook -> ${hook_file}"
 '''

@@ -76,7 +76,7 @@ exec apm install -t copilot,claude,gemini
 '''
 
 [tasks.apm-install-update]
-description = "Refresh APM dependencies to upstream latest. Skipped silently when apm.yml or the apm CLI is absent."
+description = "Refresh APM dependencies to upstream latest. Skipped when apm.yml/apm absent, or when apm.lock.yaml already records the current upstream renri HEAD (kicks in on every cargo make on-add after the first to keep worktree creation fast)."
 script_runner = "@duckscript"
 script = '''
 exists = is_path_exists "apm.yml"
@@ -89,6 +89,38 @@ if is_empty ${apm_path}
     echo "apm CLI not on PATH; skipping apm-install-update (install via aka.ms/apm-unix or your platform's package manager)"
     exit 0
 end
+
+# Fast-path: if apm.lock.yaml already records the current
+# upstream HEAD of yukimemi/renri (the only APM dependency for
+# yukimemi/* projects), don't re-run `apm install --update` —
+# git ls-remote is ~100ms, an actual reinstall is several
+# seconds. This makes `cargo make on-add` cheap on every
+# `renri add` after the first.
+lock_exists = is_path_exists "apm.lock.yaml"
+if ${lock_exists}
+    ls_result = exec git ls-remote https://github.com/yukimemi/renri.git refs/heads/main
+    ls_ok = eq ${ls_result.code} 0
+    if ${ls_ok}
+        upstream_line = trim ${ls_result.stdout}
+        upstream_sha = substring ${upstream_line} 0 40
+        # Guard against empty / short upstream_sha. duckscript's
+        # `contains "haystack" ""` returns true (empty needle is
+        # always a substring), so without this check a successful-
+        # but-empty `git ls-remote` (deleted main ref, weird CI
+        # mirror, etc.) would incorrectly skip the install.
+        sha_len = length ${upstream_sha}
+        sha_valid = eq ${sha_len} 40
+        if ${sha_valid}
+            lock_body = readfile apm.lock.yaml
+            already_synced = contains ${lock_body} ${upstream_sha}
+            if ${already_synced}
+                echo "apm.lock.yaml already at upstream renri ${upstream_sha}; skipping apm install --update"
+                exit 0
+            end
+        end
+    end
+end
+
 exec apm install --update -t copilot,claude,gemini
 '''
 

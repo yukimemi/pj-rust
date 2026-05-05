@@ -7,8 +7,27 @@ version = "0.2.0"
 
 [[file]]
 src = "Makefile.toml"
-how = "overwrite"
+how = "merge-toml"
 when = "always"
+# kata owns these specific tasks; everything else (consumer-added
+# tasks like `install-local`, project-specific release tasks, etc.)
+# is left untouched on every `kata apply`.
+paths = [
+    "tasks.default",
+    "tasks.check",
+    "tasks.fmt-check",
+    "tasks.fmt",
+    "tasks.clippy",
+    "tasks.test",
+    "tasks.lock-check",
+    "tasks.publish-dry",
+    "tasks.hook-install",
+    "tasks.apm-install",
+    "tasks.apm-install-update",
+    "tasks.setup",
+    "tasks.vcs-fetch",
+    "tasks.on-add",
+]
 
 [[file]]
 src = "rust-toolchain.toml"
@@ -58,10 +77,14 @@ src = "renovate.json"
 how = "overwrite"
 when = "always"
 
-# Overwrite pj-base's apm-install-only renri hook with the
+# Replace pj-base's apm-install-only renri hook with the
 # Rust-flavoured `cargo make on-add` chain (apm-install + vcs-fetch).
+# `merge-toml` keyed on `hooks.post_create` so the array-of-tables
+# is canonical-from-kata, but consumer comments / unrelated keys
+# (e.g. project-specific `[runtime]` sections) survive.
 [[file]]
 src = "renri.toml.rust"
 dst = "renri.toml"
-how = "overwrite"
+how = "merge-toml"
 when = "always"
+paths = ["hooks.post_create"]

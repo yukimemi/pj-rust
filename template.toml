@@ -1,5 +1,5 @@
 name = "pj-rust"
-version = "0.1.0"
+version = "0.2.0"
 
 # Rust language layer. Brings the cargo-make task surface, the
 # stable rust-toolchain pin, and the cross-platform CI matrix every
@@ -15,7 +15,53 @@ src = "rust-toolchain.toml"
 how = "overwrite"
 when = "always"
 
+# CI workflow source carries the `.template` suffix so GitHub
+# Actions doesn't try to run it inside this repo. Renders to the
+# real workflow path in each consuming PJ.
 [[file]]
-src = ".github/workflows/ci.yml"
+src = ".github/workflows/ci.yml.template"
+dst = ".github/workflows/ci.yml"
+how = "overwrite"
+when = "always"
+
+# Rust-layer agent guidance — cargo make / clippy / rust-toolchain
+# notes. Lives inside its own marker block so pj-base's
+# language-agnostic block and pj-rust-cli's CLI-specific block
+# can coexist in the same AGENTS.md.
+[[file]]
+src = "AGENTS.md.rust"
+dst = "AGENTS.md"
+how = "merge-section"
+when = "always"
+marker = { begin = "<!-- kata:agents:rust:begin -->", end = "<!-- kata:agents:rust:end -->" }
+
+# Format / lint policy — yukimemi/* Rust projects share these so
+# clippy CI is uniform. Bumped centrally here; local edits in
+# consumer PJs are reverted on the next `kata apply`.
+[[file]]
+src = "rustfmt.toml"
+how = "overwrite"
+when = "always"
+
+[[file]]
+src = "clippy.toml"
+how = "overwrite"
+when = "always"
+
+# Renovate config: customManagers picks up the `.template`
+# workflow files (so `yukimemi/pj-rust` itself can keep its CI
+# action versions current) and a packageRules block opts each
+# consuming PJ out of touching the kata-managed workflows
+# directly. Same json works in both directions.
+[[file]]
+src = "renovate.json"
+how = "overwrite"
+when = "always"
+
+# Overwrite pj-base's apm-install-only renri hook with the
+# Rust-flavoured `cargo make on-add` chain (apm-install + vcs-fetch).
+[[file]]
+src = "renri.toml.rust"
+dst = "renri.toml"
 how = "overwrite"
 when = "always"

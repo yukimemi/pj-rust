@@ -1,0 +1,49 @@
+### Rust workflow
+
+This repo follows the yukimemi/* Rust toolchain conventions. The
+language-agnostic conventions block above (`kata:agents:base:*`)
+covers git workflow, PR review cycle, and worktree usage.
+
+### Build / lint / test
+
+```sh
+cargo make check                    # fmt --check + clippy + test (the pre-push gate)
+cargo make setup                    # one-time hook install + apm install
+cargo build                         # debug build
+cargo build --release               # release build
+cargo test                          # tests; add -- --nocapture for stdout
+```
+
+`cargo make check` is what `.github/workflows/ci.yml` runs and what
+the local pre-push hook calls — anything that passes locally
+should pass on CI and vice versa. Don't paper over a failing
+clippy by sprinkling `#[allow(clippy::...)]`; fix the underlying
+issue or push back on the lint with reasoning.
+
+### Toolchain pin
+
+The Rust toolchain is pinned via `rust-toolchain.toml` and the
+project compiles with the `stable` channel. Don't introduce
+nightly-only features without a real reason; if you do, document
+the reason in the relevant module.
+
+### Lint / format policy
+
+`rustfmt.toml` and `clippy.toml` are kata-managed (sourced from
+`yukimemi/pj-rust`). Edits to those files in this repo won't
+survive the next `kata apply`; if a setting is wrong, push the
+fix to `yukimemi/pj-rust` so every yukimemi/* Rust project picks
+it up.
+
+### CI workflow
+
+`.github/workflows/ci.yml` is also kata-managed. The source lives
+in `yukimemi/pj-rust/.github/workflows/ci.yml.template` (the
+`.template` suffix keeps GitHub Actions from running the source
+itself in pj-rust); each Rust project receives the rendered
+`ci.yml` via `kata apply`. Action versions are bumped centrally
+by Renovate at `yukimemi/pj-rust` and propagate down on the next
+apply, so don't bump them locally — Renovate is configured
+(via the kata-distributed `renovate.json`) to ignore
+`.github/workflows/ci.yml` and `.github/workflows/release.yml`
+in each PJ to avoid the bump→clobber loop.

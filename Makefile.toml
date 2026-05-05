@@ -44,8 +44,17 @@ hook_file = set "${hook_dir}/pre-push"
 mkdir ${hook_dir}
 hook_content = set "#!/bin/sh\n# Installed by: cargo make hook-install\ncargo make check"
 writefile ${hook_file} ${hook_content}
-# Unix needs the exec bit; on Windows chmod is a no-op via Git for Windows / busybox.
-exec chmod +x ${hook_file}
+# chmod +x is needed on Unix; on Windows the exec bit is a no-op
+# AND `chmod` may not be on PATH (it's only present when Git for
+# Windows / busybox is wired into the shell). Skip silently if
+# `chmod` isn't reachable so plain Windows shells don't fail this
+# task with `program not found`.
+chmod_path = which chmod
+if not is_empty ${chmod_path}
+    exec chmod +x ${hook_file}
+else
+    echo "chmod not on PATH; skipping exec-bit (no-op on Windows; on Unix this means the hook may not be executable)"
+end
 echo "Installed pre-push hook -> ${hook_file}"
 '''
 

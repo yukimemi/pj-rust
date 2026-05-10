@@ -1,5 +1,5 @@
 name = "pj-rust"
-version = "0.3.1"
+version = "0.3.2"
 
 # Rust language layer. Brings the cargo-make task surface, the
 # stable rust-toolchain pin, and the cross-platform CI matrix every
@@ -19,6 +19,8 @@ paths = [
     "tasks.fmt",
     "tasks.clippy",
     "tasks.test",
+    "tasks.test-targets",
+    "tasks.test-doc",
     "tasks.lock-check",
     "tasks.publish-dry",
     "tasks.hook-install",

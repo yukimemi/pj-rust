@@ -23,9 +23,9 @@ jobs:
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@{{ vars.actions.checkout }}
       - uses: dtolnay/rust-toolchain@stable
-      - uses: Swatinem/rust-cache@v2
+      - uses: Swatinem/rust-cache@{{ vars.actions.swatinem_rust_cache }}
       - run: cargo check --all-targets
 
   test:
@@ -36,9 +36,9 @@ jobs:
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@{{ vars.actions.checkout }}
       - uses: dtolnay/rust-toolchain@stable
-      - uses: Swatinem/rust-cache@v2
+      - uses: Swatinem/rust-cache@{{ vars.actions.swatinem_rust_cache }}
       # `cargo test --all-targets` covers lib / bins / tests / benches
       # / examples but EXCLUDES doc tests, so run --doc separately.
       - run: cargo test --all-targets
@@ -48,7 +48,7 @@ jobs:
     name: rustfmt
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@{{ vars.actions.checkout }}
       - uses: dtolnay/rust-toolchain@stable
         with:
           components: rustfmt
@@ -58,11 +58,11 @@ jobs:
     name: clippy
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@{{ vars.actions.checkout }}
       - uses: dtolnay/rust-toolchain@stable
         with:
           components: clippy
-      - uses: Swatinem/rust-cache@v2
+      - uses: Swatinem/rust-cache@{{ vars.actions.swatinem_rust_cache }}
       - run: cargo clippy --all-targets -- -D warnings
 
   lockfile:
@@ -72,7 +72,7 @@ jobs:
     name: cargo lockfile in sync
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@{{ vars.actions.checkout }}
       - uses: dtolnay/rust-toolchain@stable
-      - uses: Swatinem/rust-cache@v2
+      - uses: Swatinem/rust-cache@{{ vars.actions.swatinem_rust_cache }}
       - run: cargo check --locked --all-targets

@@ -1,5 +1,5 @@
 name = "pj-rust"
-version = "0.2.1"
+version = "0.3.0"
 
 # Rust language layer. Brings the cargo-make task surface, the
 # stable rust-toolchain pin, and the cross-platform CI matrix every
@@ -34,14 +34,30 @@ src = "rust-toolchain.toml"
 how = "overwrite"
 when = "always"
 
-# CI workflow source carries the `.template` suffix so GitHub
-# Actions doesn't try to run it inside this repo. Renders to the
-# real workflow path in each consuming PJ.
+# CI workflow source carries the `.tera` suffix for two reasons:
+# (1) GitHub Actions only runs files ending in `.yml`/`.yaml` under
+# `.github/workflows/`, so the `.tera`-suffixed source isn't picked
+# up by GHA inside this repo (same protection the old `.template`
+# suffix gave); (2) kata Tera-renders `.tera` files at apply time,
+# stripping the suffix on the way out — so the consumer ends up
+# with `ci.yml`. Action versions pull from `vars.toml` (seeded
+# below) so per-PJ Renovate can bump them without `kata apply`
+# reverting the bump.
 [[file]]
-src = ".github/workflows/ci.yml.template"
-dst = ".github/workflows/ci.yml"
+src = ".github/workflows/ci.yml.tera"
 how = "overwrite"
 when = "always"
+
+# Seed `vars.toml` containing pinned action versions for the CI
+# workflow above. `when = "once"` so kata writes it on first apply
+# and never touches it after — consumer-owned thereafter, with
+# Renovate bumping in-place via the customManager declared in
+# `renovate.json`.
+[[file]]
+src = "vars.toml"
+dst = ".kata/vars.toml"
+how = "overwrite"
+when = "once"
 
 # Rust-layer agent guidance — cargo make / clippy / rust-toolchain
 # notes. Lives inside its own marker block so pj-base's

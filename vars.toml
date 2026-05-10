@@ -14,6 +14,6 @@
 
 [actions]
 # renovate: datasource=github-tags depName=actions/checkout
-checkout = "v6"
+checkout = "v6.0.2"
 # renovate: datasource=github-tags depName=Swatinem/rust-cache
-swatinem_rust_cache = "v2"
+swatinem_rust_cache = "v2.9.1"

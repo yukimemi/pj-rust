@@ -1,5 +1,5 @@
 name = "pj-rust"
-version = "0.3.2"
+version = "0.4.0"
 
 # Rust language layer. Brings the cargo-make task surface, the
 # stable rust-toolchain pin, and the cross-platform CI matrix every
@@ -82,16 +82,6 @@ when = "always"
 
 [[file]]
 src = "clippy.toml"
-how = "overwrite"
-when = "always"
-
-# Renovate config: customManagers picks up the `.template`
-# workflow files (so `yukimemi/pj-rust` itself can keep its CI
-# action versions current) and a packageRules block opts each
-# consuming PJ out of touching the kata-managed workflows
-# directly. Same json works in both directions.
-[[file]]
-src = "renovate.json"
 how = "overwrite"
 when = "always"
 

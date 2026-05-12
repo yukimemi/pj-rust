@@ -1,0 +1,22 @@
+# Rust-layer action version pins. Merged into the consumer's
+# `.kata/vars.toml` via `[[file]] how = "merge-toml"`, composing
+# with pj-base's universal pins (actions/checkout,
+# peter-evans/create-pull-request) on top of which this fragment
+# adds the Rust-specific entries (Swatinem/rust-cache).
+#
+# Layering relies on yukimemi/kata#85 — `when = "once"` now
+# composes across multiple `[[file]]` entries targeting the same
+# dst within a single apply run, so pj-base's overwrite-seed +
+# pj-rust's merge-toml both fire on the first apply and the
+# consumer ends up with the union of both layers' pins.
+#
+# Each `# renovate:` annotation tells Renovate which datasource
+# and upstream repo the value tracks; Renovate bumps these via
+# the customManager declared in pj-base's `default.json`. Bumps
+# land in this template repo's source file (via Renovate's scan
+# of `vars.rust.toml`) and in each consumer's `.kata/vars.toml`
+# (consumer-side, after kata's first-apply merge).
+
+[actions]
+# renovate: datasource=github-tags depName=Swatinem/rust-cache
+swatinem_rust_cache = "v2"

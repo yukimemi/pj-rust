@@ -1,5 +1,5 @@
 name = "pj-rust"
-version = "0.4.2"
+version = "0.5.0"
 
 # Rust language layer. Brings the cargo-make task surface, the
 # stable rust-toolchain pin, and the cross-platform CI matrix every
@@ -50,16 +50,27 @@ src = ".github/workflows/ci.yml.tera"
 how = "overwrite"
 when = "always"
 
-# Seed `vars.toml` containing pinned action versions for the CI
-# workflow above. `when = "once"` so kata writes it on first apply
-# and never touches it after — consumer-owned thereafter, with
-# Renovate bumping in-place via the customManager declared in
-# `renovate.json`.
+# Rust-layer action pins, merged into `.kata/vars.toml` on top of
+# pj-base's universal seed. `how = "merge-toml"` with
+# `paths = ["actions.swatinem_rust_cache"]` writes only the
+# Swatinem/rust-cache entry — pj-base's `actions.checkout` /
+# `actions.create_pull_request` pins survive untouched.
+#
+# `when = "once"`: the consumer owns `.kata/vars.toml` after the
+# first apply; subsequent runs skip this entry, leaving consumer
+# and Renovate-side edits intact. yukimemi/kata#85 makes this
+# composable with pj-base's overwrite-seed (both fire on first
+# apply, both share a single post-loop `once_applied` flag).
+#
+# Renovate bumps this source file (template-side) and the
+# consumer's `.kata/vars.toml` (consumer-side) independently —
+# see pj-base's `default.json` customManager.
 [[file]]
-src = "vars.toml"
+src = "vars.rust.toml"
 dst = ".kata/vars.toml"
-how = "overwrite"
+how = "merge-toml"
 when = "once"
+paths = ["actions.swatinem_rust_cache"]
 
 # Rust-layer agent guidance — cargo make / clippy / rust-toolchain
 # notes. Lives inside its own marker block so pj-base's

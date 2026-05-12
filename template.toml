@@ -1,5 +1,5 @@
 name = "pj-rust"
-version = "0.4.1"
+version = "0.4.2"
 
 # Rust language layer. Brings the cargo-make task surface, the
 # stable rust-toolchain pin, and the cross-platform CI matrix every

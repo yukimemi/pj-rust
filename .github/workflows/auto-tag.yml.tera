@@ -67,10 +67,10 @@ jobs:
         env:
           # `gh` reads this; `git push` uses the default token from
           # actions/checkout's persisted credentials.
-          GH_TOKEN: ${{ github.token }}
+          GH_TOKEN: {% raw %}${{ github.token }}{% endraw %}
         run: |
           set -euo pipefail
-          TAG="v${{ steps.ver.outputs.new }}"
+          TAG="v{% raw %}${{ steps.ver.outputs.new }}{% endraw %}"
           # Be idempotent: if the tag already exists (e.g. someone
           # ran `git tag` by hand before this workflow caught up),
           # don't overwrite it — just exit successfully.

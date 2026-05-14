@@ -50,6 +50,20 @@ src = ".github/workflows/ci.yml.tera"
 how = "overwrite"
 when = "always"
 
+# Tag-driven release flow lives in `pj-rust-cli` (CLI binaries +
+# cargo publish), but the trigger — "main got a Cargo.toml version
+# bump → create a vX.Y.Z tag" — is the same for libs and CLIs, so
+# the auto-tag workflow lives here. Once it lands, releasing any
+# yukimemi/* Rust crate is just "merge a PR that bumps
+# `package.version`"; the workflow picks up the diff and pushes the
+# tag, and (for CLIs) `pj-rust-cli`'s release.yml takes it from
+# there. Same `.tera` suffix trick as ci.yml — protected from
+# GHA inside pj-rust itself.
+[[file]]
+src = ".github/workflows/auto-tag.yml.tera"
+how = "overwrite"
+when = "always"
+
 # Rust-layer action pins, merged into `.kata/vars.toml` on top of
 # pj-base's universal seed. `how = "merge-toml"` with
 # `paths = ["actions.swatinem_rust_cache"]` writes only the

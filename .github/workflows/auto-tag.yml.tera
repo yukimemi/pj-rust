@@ -11,6 +11,18 @@
 # the consumer side). The `.tera` suffix keeps GitHub Actions
 # from running the source inside `pj-rust` itself, the same
 # protection `ci.yml.tera` and `release.yml.template` use.
+#
+# Token: this workflow pushes the tag with `KATA_APPLY_TOKEN`
+# (a PAT) rather than the default `GITHUB_TOKEN`. The default
+# token would create the tag fine, but GitHub deliberately
+# refuses to fire downstream workflows (release.yml) from refs
+# pushed by `GITHUB_TOKEN` to prevent recursive workflow runs.
+# Using the PAT — the same one `kata-apply.yml` already relies
+# on for the exact same downstream-trigger reason — restores
+# the tag → release.yml chain. Each consumer repo needs a
+# `KATA_APPLY_TOKEN` secret set; this is documented in
+# pj-base's apply-workflow notes alongside the kata-apply
+# bootstrap step.
 
 name: Auto-tag on version bump
 
@@ -28,10 +40,16 @@ jobs:
       # `fetch-depth: 2` so HEAD~1 (the parent commit) is in scope
       # for the Cargo.toml diff. fetch-depth: 0 would also work but
       # is wasteful when we only need one parent.
+      #
+      # `token: KATA_APPLY_TOKEN` makes actions/checkout persist
+      # the PAT as the credential the later `git push` call will
+      # use. Without this the tag push goes out under the default
+      # `GITHUB_TOKEN` and downstream workflows stay silent.
       - name: Checkout
         uses: actions/checkout@{{ vars.actions.checkout }}
         with:
           fetch-depth: 2
+          token: {% raw %}${{ secrets.KATA_APPLY_TOKEN }}{% endraw %}
 
       # Extract `version = "..."` from Cargo.toml under [package].
       # Plain grep is enough because yukimemi/* crates are
@@ -65,9 +83,13 @@ jobs:
         if: steps.ver.outputs.bumped == 'true'
         shell: bash
         env:
-          # `gh` reads this; `git push` uses the default token from
-          # actions/checkout's persisted credentials.
-          GH_TOKEN: {% raw %}${{ github.token }}{% endraw %}
+          # `gh` reads this; the matching `git push` uses the PAT
+          # that actions/checkout persisted above. Using
+          # `KATA_APPLY_TOKEN` for both keeps "the tag was pushed
+          # by a user, not a workflow" — which is the bit GitHub
+          # checks before firing downstream workflows like
+          # release.yml.
+          GH_TOKEN: {% raw %}${{ secrets.KATA_APPLY_TOKEN }}{% endraw %}
         run: |
           set -euo pipefail
           TAG="v{% raw %}${{ steps.ver.outputs.new }}{% endraw %}"

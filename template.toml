@@ -1,5 +1,5 @@
 name = "pj-rust"
-version = "0.5.0"
+version = "0.6.0"
 
 # Rust language layer. Brings the cargo-make task surface, the
 # stable rust-toolchain pin, and the cross-platform CI matrix every
@@ -112,12 +112,17 @@ when = "always"
 
 # Replace pj-base's apm-install-only renri hook with the
 # Rust-flavoured `cargo make on-add` chain (apm-install + vcs-fetch).
-# `merge-toml` keyed on `hooks.post_create` so the array-of-tables
-# is canonical-from-kata, but consumer comments / unrelated keys
-# (e.g. project-specific `[runtime]` sections) survive.
+# `merge-toml` keyed on `hooks.post_create[0]` (yukimemi/kata#108)
+# so kata owns the first hook entry and consumers can freely
+# append additional `[[hooks.post_create]]` blocks — e.g. kanade
+# adding `bun install --cwd crates/kanade-backend/web` after the
+# kata-managed `cargo make on-add` chain. Indexing requires
+# kata >= 0.11.0; consumers on older kata fall through to a
+# silent no-op (the old splitter treats `post_create[0]` as a
+# literal key, finds nothing, leaves the array alone).
 [[file]]
 src = "renri.toml.rust"
 dst = "renri.toml"
 how = "merge-toml"
 when = "always"
-paths = ["hooks.post_create"]
+paths = ["hooks.post_create[0]"]

@@ -3,7 +3,7 @@ version = "0.6.0"
 
 # Rust language layer. Brings the cargo-make task surface, the
 # stable rust-toolchain pin, and the cross-platform CI matrix every
-# yukimemi/* Rust project shares. Compose under `pj-base`.
+# Rust project using these templates shares. Compose under `pj-base`.
 
 [[file]]
 src = "Makefile.toml"
@@ -54,7 +54,7 @@ when = "always"
 # cargo publish), but the trigger — "main got a Cargo.toml version
 # bump → create a vX.Y.Z tag" — is the same for libs and CLIs, so
 # the auto-tag workflow lives here. Once it lands, releasing any
-# yukimemi/* Rust crate is just "merge a PR that bumps
+# Rust crate using these templates is just "merge a PR that bumps
 # `package.version`"; the workflow picks up the diff and pushes the
 # tag, and (for CLIs) `pj-rust-cli`'s release.yml takes it from
 # there. Same `.tera` suffix trick as ci.yml — protected from
@@ -97,7 +97,7 @@ how = "merge-section"
 when = "always"
 marker = { begin = "<!-- kata:agents:rust:begin -->", end = "<!-- kata:agents:rust:end -->" }
 
-# Format / lint policy — yukimemi/* Rust projects share these so
+# Format / lint policy — Rust projects using these templates share these so
 # clippy CI is uniform. Bumped centrally here; local edits in
 # consumer PJs are reverted on the next `kata apply`.
 [[file]]

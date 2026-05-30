@@ -1,5 +1,5 @@
 name = "pj-rust"
-version = "0.7.0"
+version = "0.8.0"
 
 # Rust language layer. Brings the cargo-make task surface, the
 # stable rust-toolchain pin, and the cross-platform CI matrix every
@@ -126,3 +126,20 @@ dst = "renri.toml"
 how = "merge-toml"
 when = "always"
 paths = ["hooks.post_create[0]"]
+
+# Renovate: pj-base ships the base `renovate.json` (`extends: [pj-base]`,
+# `when = once`). The Rust layer repoints the consumer's `extends` at
+# pj-rust's OWN preset (`default.json`) — which itself extends pj-base and
+# adds the Cargo `bumpVersions` rule (dependency update → patch-bump
+# `[package].version` → existing `auto-tag.yml` → `release.yml`, so the
+# updated dependency lands in a release with no manual bump PR).
+#
+# `how = "merge-json"` with `paths = ["extends"]` rewrites ONLY the
+# `extends` array, leaving any consumer-added keys (labels, extra
+# packageRules, …) untouched — unlike a blanket overwrite. Runs after
+# pj-base (Rust layer composes on top), so the Rust `extends` wins.
+[[file]]
+src = "renovate.json"
+how = "merge-json"
+when = "always"
+paths = ["extends"]

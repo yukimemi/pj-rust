@@ -1,0 +1,12 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": ["github>yukimemi/pj-base"],
+  "bumpVersions": [
+    {
+      "name": "cargo-package-version: on a dependency upgrade, patch-bump this crate's own [package].version in Cargo.toml so the existing auto-tag.yml -> release.yml chain fires and the updated dependency lands in a release without a manual bump PR. lockFileMaintenance does not change a dependency version string, so it is not expected to trigger this.",
+      "filePatterns": ["(^|/)Cargo\\.toml$"],
+      "matchStrings": ["(?ms)^\\s*\\[(?:workspace\\.)?package\\]\\s*\\n(?:(?!^\\s*\\[).)*?^version\\s*=\\s*\"(?<version>[^\"]+)\""],
+      "bumpType": "patch"
+    }
+  ]
+}

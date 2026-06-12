@@ -3,9 +3,9 @@
   "extends": ["github>yukimemi/pj-base"],
   "bumpVersions": [
     {
-      "name": "cargo-package-version: on a dependency upgrade, patch-bump this crate's own [package].version in Cargo.toml so the existing auto-tag.yml -> release.yml chain fires and the updated dependency lands in a release without a manual bump PR. lockFileMaintenance does not change a dependency version string, so it is not expected to trigger this.",
+      "name": "cargo-package-version: on a dependency upgrade, patch-bump this crate's own [package].version in Cargo.toml so the existing auto-tag.yml -> release.yml chain fires and the updated dependency lands in a release without a manual bump PR. lockFileMaintenance does not change a dependency version string, so it is not expected to trigger this. NOTE: matchStrings are compiled with re2, which rejects lookahead/lookbehind ('invalid perl operator: (?!') -- a regex using one fails to compile and the whole rule silently no-ops. Stay inside the [package] table with the negated class [^\\[] (matches across newlines, stops at the next [section]) instead of a negative lookahead, and line-anchor with (?m)^\\s*version so rust-version is not matched.",
       "filePatterns": ["(^|/)Cargo\\.toml$"],
-      "matchStrings": ["(?ms)^\\s*\\[(?:workspace\\.)?package\\]\\s*\\n(?:(?!^\\s*\\[).)*?^version\\s*=\\s*\"(?<version>[^\"]+)\""],
+      "matchStrings": ["(?m)^\\s*\\[(?:workspace\\.)?package\\][^\\[]*?^\\s*version\\s*=\\s*\"(?<version>[^\"]+)\""],
       "bumpType": "patch"
     }
   ]

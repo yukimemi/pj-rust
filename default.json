@@ -8,5 +8,16 @@
       "matchStrings": ["(?ms)^\\s*\\[(?:workspace\\.)?package\\]\\s*\\n(?:(?!^\\s*\\[).)*?^version\\s*=\\s*\"(?<version>[^\"]+)\""],
       "bumpType": "patch"
     }
+  ],
+  "packageRules": [
+    {
+      "description": "Consumer-side workflows THIS layer renders (`ci.yml.tera`, `auto-tag.yml.tera`, both `when = \"always\"`). Action bumps happen upstream in pj-rust and flow down via `kata apply`, so a Renovate-driven local bump is reverted on the next apply and re-opened forever. The canonical pins live in `.kata/vars.toml`, which pj-base's customManager scans. Owned here rather than in pj-base because pj-base cannot know that a Rust layer composes above it.",
+      "matchManagers": ["github-actions"],
+      "matchFileNames": [
+        ".github/workflows/ci.yml",
+        ".github/workflows/auto-tag.yml"
+      ],
+      "enabled": false
+    }
   ]
 }

@@ -127,17 +127,23 @@ how = "merge-toml"
 when = "always"
 paths = ["hooks.post_create[0]"]
 
-# Renovate: pj-base ships the base `renovate.json` (`extends: [pj-base]`,
-# `when = once`). The Rust layer repoints the consumer's `extends` at
-# pj-rust's OWN preset (`default.json`) — which itself extends pj-base and
-# adds the Cargo `bumpVersions` rule (dependency update → patch-bump
-# `[package].version` → existing `auto-tag.yml` → `release.yml`, so the
-# updated dependency lands in a release with no manual bump PR).
+# Renovate: repoint the consumer's `extends` at THIS layer's own
+# preset (`default.json`) — which extends pj-base and adds the Cargo
+# `bumpVersions` rule (dependency update → patch-bump
+# `[package].version` → existing `auto-tag.yml` → `release.yml`, so
+# the updated dependency lands in a release with no manual bump PR)
+# plus the `ci.yml` / `auto-tag.yml` disables this layer owns.
+#
+# Every layer ships this same entry naming ITSELF; kata's compose rule
+# (last layer wins on file conflicts) then resolves `extends` to the
+# topmost APPLIED layer. So this value is correct for a bare `rust`
+# stack and is superseded by pj-rust-cli / pj-rust-lib /
+# pj-rust-workspace when one of those composes on top. No layer needs
+# to know what sits above it.
 #
 # `how = "merge-json"` with `paths = ["extends"]` rewrites ONLY the
 # `extends` array, leaving any consumer-added keys (labels, extra
-# packageRules, …) untouched — unlike a blanket overwrite. Runs after
-# pj-base (Rust layer composes on top), so the Rust `extends` wins.
+# packageRules, …) untouched — unlike a blanket overwrite.
 [[file]]
 src = "renovate.json"
 how = "merge-json"

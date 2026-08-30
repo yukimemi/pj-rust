@@ -15,6 +15,7 @@ when = "always"
 paths = [
     "tasks.default",
     "tasks.check",
+    "tasks.editorconfig-check",
     "tasks.fmt-check",
     "tasks.fmt",
     "tasks.clippy",
@@ -84,7 +85,28 @@ src = "vars.rust.toml"
 dst = ".kata/vars.toml"
 how = "merge-toml"
 when = "once"
-paths = ["actions.swatinem_rust_cache"]
+paths = ["actions.swatinem_rust_cache", "actions.editorconfig_checker"]
+
+# Back-fill of the `editorconfig_checker` pin for ALREADY-INITIALIZED
+# consumers, same trap/fix as pj-base's `claude_code_action` back-fill:
+# the seed entry above is `when = "once"`, so a key added to
+# `vars.rust.toml` after a consumer's first apply never reaches their
+# `.kata/vars.toml` — and `ci.yml.tera`'s new `editorconfig` job
+# referencing `vars.actions.editorconfig_checker` would then fail
+# kata's strict Tera render (undefined variable), breaking every
+# existing consumer's daily `kata-apply` run. `merge-toml` with a
+# narrow `paths` list only syncs this one key, leaving the
+# consumer-owned `swatinem_rust_cache` pin untouched. Ownership
+# consequence: this key is kata-managed in consumer repos — the
+# canonical bump happens here and flows down on the next apply;
+# consumer-side Renovate scanning of this dep is disabled in this
+# layer's own `default.json` to avoid a bump-then-revert cycle.
+[[file]]
+src = "vars.rust.toml"
+dst = ".kata/vars.toml"
+how = "merge-toml"
+when = "always"
+paths = ["actions.editorconfig_checker"]
 
 # Rust-layer agent guidance — cargo make / clippy / rust-toolchain
 # notes. Lives inside its own marker block so pj-base's
@@ -96,6 +118,16 @@ dst = "AGENTS.md"
 how = "merge-section"
 when = "always"
 marker = { begin = "<!-- kata:agents:rust:begin -->", end = "<!-- kata:agents:rust:end -->" }
+
+# Rust-layer EditorConfig section — `[*.rs] indent_size = 4` appended
+# after pj-base's `[*]` defaults (LF, 2-space, trimmed trailing
+# whitespace) in the same marker-section convention as AGENTS.md above.
+[[file]]
+src = "editorconfig.rust"
+dst = ".editorconfig"
+how = "merge-section"
+when = "always"
+marker = { begin = "# kata:editorconfig:rust:begin", end = "# kata:editorconfig:rust:end" }
 
 # Format / lint policy — Rust projects using these templates share these so
 # clippy CI is uniform. Bumped centrally here; local edits in

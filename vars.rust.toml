@@ -20,3 +20,6 @@
 [actions]
 # renovate: datasource=github-tags depName=Swatinem/rust-cache
 swatinem_rust_cache = "v2"
+
+# renovate: datasource=github-tags depName=editorconfig-checker/action-editorconfig-checker
+editorconfig_checker = "v2"

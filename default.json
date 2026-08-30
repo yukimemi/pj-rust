@@ -18,6 +18,12 @@
         ".github/workflows/auto-tag.yml"
       ],
       "enabled": false
+    },
+    {
+      "description": "The `editorconfig_checker` pin is kata-managed in consumer repos (back-filled into `.kata/vars.toml` via this layer's `merge-toml, when=always` entry, unlike the consumer-owned `swatinem_rust_cache` pin). The canonical bump happens in pj-rust's own `vars.rust.toml` and flows down on the next `kata apply` — a consumer-side Renovate bump would be reverted by that apply, re-opened by Renovate, and so on. Disable consumer-side scanning of this one dep to break the cycle.",
+      "matchDepNames": ["editorconfig-checker/action-editorconfig-checker"],
+      "matchFileNames": [".kata/vars.toml"],
+      "enabled": false
     }
   ]
 }

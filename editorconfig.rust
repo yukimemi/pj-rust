@@ -1,0 +1,7 @@
+# Rust-layer EditorConfig section — appended (via kata merge-section) to
+# the `[*]` defaults pj-base ships. `indent_size = 4` matches rustfmt's
+# default `tab_spaces` (`rustfmt.toml` only pins `edition`, so the 4-space
+# default stands); everything else (TOML/YAML/JSON/Markdown at 2 spaces,
+# LF, trimmed trailing whitespace) is inherited from pj-base's `[*]`.
+[*.rs]
+indent_size = 4

@@ -119,9 +119,13 @@ how = "merge-section"
 when = "always"
 marker = { begin = "<!-- kata:agents:rust:begin -->", end = "<!-- kata:agents:rust:end -->" }
 
-# Rust-layer EditorConfig section — `[*.rs] indent_size = 4` appended
-# after pj-base's `[*]` defaults (LF, 2-space, trimmed trailing
-# whitespace) in the same marker-section convention as AGENTS.md above.
+# Rust-layer EditorConfig section — now carries NO rules, only the note
+# explaining why (rustfmt owns `tab_spaces`; `cargo fmt --check` enforces it).
+# The entry is kept rather than removed so that `merge-section` +
+# `when = "always"` rewrites the block down to comments in every consumer;
+# deleting the entry would strand the old `indent_size = 4` in each
+# already-initialized repo instead. Same marker-section convention as
+# AGENTS.md above.
 [[file]]
 src = "editorconfig.rust"
 dst = ".editorconfig"

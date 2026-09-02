@@ -1,7 +1,29 @@
-# Rust-layer EditorConfig section — appended (via kata merge-section) to
-# the `[*]` defaults pj-base ships. `indent_size = 4` matches rustfmt's
-# default `tab_spaces` (`rustfmt.toml` only pins `edition`, so the 4-space
-# default stands); everything else (TOML/YAML/JSON/Markdown at 2 spaces,
-# LF, trimmed trailing whitespace) is inherited from pj-base's `[*]`.
-[*.rs]
-indent_size = 4
+# Rust-layer EditorConfig section — intentionally EMPTY of rules.
+#
+# This layer used to ship `[*.rs] indent_size = 4`, and its own comment gave
+# the reason it should not: it "matches rustfmt's default `tab_spaces`". That
+# is a duplicate of a setting rustfmt already owns and CI already enforces
+# (`cargo fmt --check`), so it added a second opinion about the same bytes
+# rather than any enforcement — and when the two disagreed, rustfmt was right
+# and the `editorconfig` job was the one going red.
+#
+# Measured on `yukimemi/nagi` (2026-09-02) with both indent rules in force:
+# `editorconfig-checker` reported **323 errors** on a tree where
+# `cargo fmt --check` and `cargo clippy` were both clean, **248 of them
+# `want multiple of 4`** from this very rule. The job had failed on every run
+# since it landed, so it never gave signal, only per-PR triage.
+#
+# It is not a formatting slip that could be tidied away: rustfmt leaves
+# `//` and `/* */` comment bodies alone, and the dominant style aligns
+# continuation lines under `/* `, which is 3 columns and therefore never a
+# multiple of 4. The two tools cannot both be satisfied.
+#
+# The file is kept rather than deleted on purpose. Its `[[file]]` entry is
+# `how = "merge-section"` with `when = "always"`, so keeping it lets the next
+# `kata apply` REWRITE the `# kata:editorconfig:rust:*` block in every
+# consumer down to these comments. Dropping the entry instead would leave the
+# old block — `indent_size = 4` included — stranded in every already-
+# initialized repo, since kata would no longer be told the section exists.
+#
+# If a future Rust-specific rule is genuinely about encoding or line endings
+# rather than formatting, this is where it goes.

@@ -19,7 +19,7 @@
 
 [actions]
 # renovate: datasource=github-tags depName=Swatinem/rust-cache
-swatinem_rust_cache = "v2"
+swatinem_rust_cache = "v2.9.2"
 
 # renovate: datasource=github-tags depName=editorconfig-checker/action-editorconfig-checker
 # v3 is required, not merely newer: editorconfig-checker v4.0.0 renamed its

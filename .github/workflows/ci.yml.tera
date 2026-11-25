@@ -43,6 +43,122 @@ jobs:
         continue-on-error: true
       - run: cargo check --all-targets
 
+{%- if vars.PJ_RUST_TEST_RUNNER is defined and vars.PJ_RUST_TEST_RUNNER == "nextest-unit" %}
+
+  # Opt-in runner (`PJ_RUST_TEST_RUNNER = "nextest-unit"` in `.kata/vars.toml`,
+  # mirrored by the same value in the repo's Makefile.toml `[env]`). Needs a
+  # `ci` profile in `.config/nextest.toml` that writes JUnit (`[profile.ci.junit]
+  # path = "junit.xml"` -> target/nextest/ci/junit.xml). Test selection:
+  #   lib + bin + integration: one `--profile ci` run (`-E` is one argument)
+  #   examples + benches:      `cargo test`, once per OS (nextest cannot run them)
+  #   doc tests:               `cargo test --doc`, guarded on src/lib.rs
+  # Windows is split: test-windows-unit (lib/bin + examples/benches + doc) and
+  # three integration-only shards; `test (windows-latest)` aggregates them so
+  # the required check name stays stable.
+  test:
+    name: {% raw %}test (${{ matrix.os }}){% endraw %}
+    runs-on: {% raw %}${{ matrix.os }}{% endraw %}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    steps:
+      - uses: actions/checkout@{{ vars.actions.checkout }}
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@{{ vars.actions.swatinem_rust_cache }}
+        with:
+          save-if: {% raw %}${{ github.ref == 'refs/heads/main' }}{% endraw %}
+        # See the check job above for why continue-on-error is set
+        # on every rust-cache restore.
+        continue-on-error: true
+      - uses: taiki-e/install-action@v2
+        with:
+          tool: nextest
+      - run: cargo nextest run --locked --no-tests=pass --profile ci -E 'kind(lib) | kind(bin) | kind(test)'
+      - run: cargo test --locked --examples --benches
+      # Doc-test step is gated on `src/lib.rs` presence: `cargo test --doc`
+      # errors with `no library targets found` on bin-only crates.
+      - if: {% raw %}${{ hashFiles('src/lib.rs') != '' }}{% endraw %}
+        run: cargo test --locked --doc
+      # Non-fatal: a flaky artifact upload must not fail a green test run.
+      - if: {% raw %}${{ !cancelled() }}{% endraw %}
+        uses: actions/upload-artifact@v4
+        continue-on-error: true
+        with:
+          name: {% raw %}junit-${{ matrix.os }}{% endraw %}
+          path: target/nextest/ci/junit.xml
+          if-no-files-found: ignore
+
+  test-windows-unit:
+    name: test-windows-unit
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@{{ vars.actions.checkout }}
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@{{ vars.actions.swatinem_rust_cache }}
+        with:
+          shared-key: windows-unit
+          save-if: {% raw %}${{ github.ref == 'refs/heads/main' }}{% endraw %}
+        continue-on-error: true
+      - uses: taiki-e/install-action@v2
+        with:
+          tool: nextest
+      - run: cargo nextest run --locked --no-tests=pass --profile ci -E 'kind(lib) | kind(bin)'
+      - run: cargo test --locked --examples --benches
+      - if: {% raw %}${{ hashFiles('src/lib.rs') != '' }}{% endraw %}
+        run: cargo test --locked --doc
+      - if: {% raw %}${{ !cancelled() }}{% endraw %}
+        uses: actions/upload-artifact@v4
+        continue-on-error: true
+        with:
+          name: junit-windows-unit
+          path: target/nextest/ci/junit.xml
+          if-no-files-found: ignore
+
+  test-windows-shard:
+    name: {% raw %}test-windows-shard (${{ matrix.shard }}/3){% endraw %}
+    runs-on: windows-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3]
+    steps:
+      - uses: actions/checkout@{{ vars.actions.checkout }}
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@{{ vars.actions.swatinem_rust_cache }}
+        with:
+          shared-key: windows-shard
+          save-if: {% raw %}${{ github.ref == 'refs/heads/main' }}{% endraw %}
+        continue-on-error: true
+      - uses: taiki-e/install-action@v2
+        with:
+          tool: nextest
+      - run: {% raw %}cargo nextest run --locked --no-tests=pass --profile ci -E 'kind(test)' --partition count:${{ matrix.shard }}/3{% endraw %}
+      - if: {% raw %}${{ !cancelled() }}{% endraw %}
+        uses: actions/upload-artifact@v4
+        continue-on-error: true
+        with:
+          name: {% raw %}junit-windows-shard-${{ matrix.shard }}{% endraw %}
+          path: target/nextest/ci/junit.xml
+          if-no-files-found: ignore
+
+  # Required-check aggregate: keeps the pre-split name. Fails unless both
+  # parts finished with exactly `success` (failed, cancelled and skipped all
+  # fail it).
+  test-windows:
+    name: test (windows-latest)
+    if: {% raw %}${{ always() }}{% endraw %}
+    needs: [test-windows-unit, test-windows-shard]
+    runs-on: ubuntu-latest
+    steps:
+      - env:
+          UNIT: {% raw %}${{ needs.test-windows-unit.result }}{% endraw %}
+          SHARD: {% raw %}${{ needs.test-windows-shard.result }}{% endraw %}
+        run: |
+          echo "unit=$UNIT shard=$SHARD"
+          [ "$UNIT" = success ] && [ "$SHARD" = success ]
+{%- else %}
+
   test:
     name: {% raw %}test (${{ matrix.os }}){% endraw %}
     runs-on: {% raw %}${{ matrix.os }}{% endraw %}
@@ -69,6 +185,7 @@ jobs:
       - run: cargo test --all-targets
       - if: {% raw %}${{ hashFiles('src/lib.rs') != '' }}{% endraw %}
         run: cargo test --doc
+{%- endif %}
 
   fmt:
     name: rustfmt
